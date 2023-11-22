@@ -8,6 +8,7 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Storage;
 use App\Http\Middleware\AdminAccess;
 use App\Models\Category;
+use App\Models\Tag;
 
 class ArticleController extends Controller
 {
@@ -31,7 +32,8 @@ class ArticleController extends Controller
     public function create()
     {
         $categories = Category::all();
-        return view('articles.create', compact('categories'));
+        $tags = Tag::all();
+        return view('articles.create', compact('categories', 'tags'));
     }
 
     /**
@@ -68,8 +70,13 @@ class ArticleController extends Controller
             'category_id' => $validated['category_id'] ?? null,
         ]);
 
+        // tambah tags
+        if ($request->has('tags')) {
+            $article->tags()->attach($request->input('tags'));
+        }
         return redirect()->route('articles.index')->with('success', 'Article added successfully.');
     }
+
 
     /**
      * Display the specified resource.
@@ -85,7 +92,8 @@ class ArticleController extends Controller
     public function edit(Article $article)
     {
         $categories = Category::all();
-        return view('articles.edit', compact('article', 'categories'));
+        $tags = Tag::all();
+        return view('articles.edit', compact('article', 'categories', 'tags'));
     }
 
     /**
@@ -125,6 +133,10 @@ class ArticleController extends Controller
             'image' => $validated['image'] ?? $article->image,
             'category_id' => $validated['category_id'] ?? null,
         ]);
+
+        if ($request->has('tags')) {
+            $article->tags()->sync($request->input('tags'));
+        }
         return redirect()->route('articles.index')->with('success', 'Article updated successfully.');
     }
 
